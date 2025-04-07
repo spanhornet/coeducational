@@ -1,11 +1,12 @@
 // Components
-import { ModeToggle } from "@/components/mode-toggle";
 import { Container } from "@/components/container";
 
-export default function Home() {
+export default function Layout(
+  { children }: { children: React.ReactNode },
+) {
   return (
     <Container>
-      <ModeToggle />
+      {children}
     </Container>
   );
 }
