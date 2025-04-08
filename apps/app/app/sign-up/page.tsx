@@ -93,7 +93,15 @@ export default function Page() {
         endDate: { month: "", year: "" },
       }]
     },
-    experience: { company: "", position: "", years: "" },
+    experience: {
+      experienceList: [{
+        company: "",
+        jobTitle: "",
+        location: "",
+        startDate: { month: "", year: "" },
+        endDate: { month: "", year: "" },
+      }]
+    },
   });
 
   const currentStep = steps.find((s) => s.step === step);
@@ -630,58 +638,328 @@ export default function Page() {
           )}
 
           {step === 3 && (
-            <div className="space-y-4">
-              <div>
-                <input
-                  {...experienceForm.register("company")}
-                  placeholder="Company"
-                  className="w-full p-2 border rounded"
-                />
-                {experienceForm.formState.errors.company && (
-                  <p className="text-red-500">{experienceForm.formState.errors.company.message}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  {...experienceForm.register("position")}
-                  placeholder="Position"
-                  className="w-full p-2 border rounded"
-                />
-                {experienceForm.formState.errors.position && (
-                  <p className="text-red-500">{experienceForm.formState.errors.position.message}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  {...experienceForm.register("years")}
-                  placeholder="Years of Experience"
-                  className="w-full p-2 border rounded"
-                />
-                {experienceForm.formState.errors.years && (
-                  <p className="text-red-500">{experienceForm.formState.errors.years.message}</p>
-                )}
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Experience</CardTitle>
+                <CardDescription>
+                  Please provide information about your work experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...experienceForm}>
+                  <div className="space-y-6">
+                    {experienceForm.watch("experienceList")?.map((_, index) => (
+                      <div key={index} className="space-y-6 p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium mb-1">Experience {index + 1}</h3>
+                            <p className="text-sm text-muted-foreground">Please provide details about your work experience</p>
+                          </div>
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const currentList = experienceForm.getValues("experienceList");
+                                currentList.splice(index, 1);
+                                experienceForm.setValue("experienceList", [...currentList]);
+                              }}
+                            >
+                              <Trash2 className="size-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <FormField
+                          control={experienceForm.control}
+                          name={`experienceList.${index}.company`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Company</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Company name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={experienceForm.control}
+                          name={`experienceList.${index}.jobTitle`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Job Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Job title" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={experienceForm.control}
+                          name={`experienceList.${index}.location`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <Input placeholder="City, State" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-4">
+                            <FormLabel>Start Date</FormLabel>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={experienceForm.control}
+                                name={`experienceList.${index}.startDate.month`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Month" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                          <SelectItem key={month} value={month.toString()}>
+                                            {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={experienceForm.control}
+                                name={`experienceList.${index}.startDate.year`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Year" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 50 }, (_, i) => {
+                                          const currentYear = new Date().getFullYear();
+                                          return currentYear - i;
+                                        }).map((year) => (
+                                          <SelectItem key={year} value={year.toString()}>
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <FormLabel>End Date</FormLabel>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={experienceForm.control}
+                                name={`experienceList.${index}.endDate.month`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Month" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                          <SelectItem key={month} value={month.toString()}>
+                                            {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={experienceForm.control}
+                                name={`experienceList.${index}.endDate.year`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Year" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 50 }, (_, i) => {
+                                          const currentYear = new Date().getFullYear();
+                                          return currentYear - i;
+                                        }).map((year) => (
+                                          <SelectItem key={year} value={year.toString()}>
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const currentList = experienceForm.getValues("experienceList") || [];
+                        experienceForm.setValue("experienceList", [
+                          ...currentList,
+                          {
+                            company: "",
+                            jobTitle: "",
+                            location: "",
+                            startDate: { month: "", year: "" },
+                            endDate: { month: "", year: "" },
+                          },
+                        ]);
+                      }}
+                    >
+                      <Plus className="size-4" />
+                      Add experience
+                    </Button>
+                  </div>
+                </Form>
+              </CardContent>
+            </Card>
           )}
 
           {step === 4 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold">Review Your Information</h3>
-              <div className="text-left">
-                <h4 className="font-semibold">Personal Information</h4>
-                <p>Name: {formData.personal.firstName} {formData.personal.lastName}</p>
-                <p>Email: {formData.personal.email}</p>
-                
-                <h4 className="font-semibold mt-4">Education</h4>
-                <p>School: {formData.education.educationList[0].university.name}</p>
-                <p>Degree: {formData.education.educationList[0].degreeType}</p>
-                <p>Graduation Year: {formData.education.educationList[0].endDate.year}</p>
-                
-                <h4 className="font-semibold mt-4">Experience</h4>
-                <p>Company: {formData.experience.company}</p>
-                <p>Position: {formData.experience.position}</p>
-                <p>Years: {formData.experience.years}</p>
-              </div>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Review Your Information</CardTitle>
+                  <CardDescription>Please review your information before submitting</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">Personal Information</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="font-medium">{formData.personal.firstName} {formData.personal.lastName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{formData.personal.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Class</p>
+                        <p className="font-medium">{formData.personal.class}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Chapter</p>
+                        <p className="font-medium">{formData.personal.chapter}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="font-medium">{formData.personal.phone}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">Education</h4>
+                    {formData.education.educationList.map((education, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">University</p>
+                            <p className="font-medium">{education.university.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Degree Type</p>
+                            <p className="font-medium">{education.degreeType}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Program</p>
+                            <p className="font-medium">{education.program.major}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">School</p>
+                            <p className="font-medium">{education.program.school}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Start Date</p>
+                            <p className="font-medium">
+                              {education.startDate.month && education.startDate.year 
+                                ? `${education.startDate.month}/${education.startDate.year}`
+                                : 'Not specified'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">End Date</p>
+                            <p className="font-medium">
+                              {education.endDate.month && education.endDate.year 
+                                ? `${education.endDate.month}/${education.endDate.year}`
+                                : 'Not specified'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg">Experience</h4>
+                    {formData.experience.experienceList.map((experience, index) => (
+                      <div key={index} className="border rounded-lg p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Company</p>
+                            <p className="font-medium">{experience.company}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Job Title</p>
+                            <p className="font-medium">{experience.jobTitle}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Location</p>
+                            <p className="font-medium">{experience.location}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Duration</p>
+                            <p className="font-medium">
+                              {experience.startDate.month && experience.startDate.year && experience.endDate.month && experience.endDate.year
+                                ? `${experience.startDate.month}/${experience.startDate.year} - ${experience.endDate.month}/${experience.endDate.year}`
+                                : 'Not specified'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 

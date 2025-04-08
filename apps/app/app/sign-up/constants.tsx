@@ -522,6 +522,31 @@ export const DEGREE_TYPES = [
   "Master of Business Administration (M.B.A.)",
 ] as const;
 
+export const personalSchema = z.object({
+  firstName: z.string().min(1, "First name must be at least 1 character"),
+  lastName: z.string().min(1, "Last name must be at least 1 character"),
+  class: z.string()
+    .min(1, "Class must be at least 1 character")
+    .refine(value => validGreekClasses.includes(value), {
+      message: "Class must be a valid romanized Greek letter name",
+    }),
+  chapter: z.string().min(1, "Chapter must be at least 1 character"),
+  email: z.string().email("Email address is invalid"),
+  phone: z.string()
+    .min(1, "Phone must be at least 1 character")
+    .refine(value => {
+      return value ? /^\+([1-9][0-9]{1,14})$/.test(value) : true;
+    }, {
+      message: "Phone number must be a valid international phone number in E.164 format",
+    }),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters long")
+    .regex(/[a-z]/, "Password must contain at least 1 lowercase letter")
+    .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
+    .regex(/[0-9]/, "Password must contain at least 1 number")
+    .regex(/\W/, "Password must contain at least 1 special character"),
+});
+
 export const educationItemSchema = z.object({
   university: z.object({
     id: z.string().min(1, "University must be selected"),
@@ -552,35 +577,22 @@ export const educationSchema = z.object({
   educationList: z.array(educationItemSchema).min(1, "At least one education entry is required"),
 });
 
-export const personalSchema = z.object({
-  firstName: z.string().min(1, "First name must be at least 1 character"),
-  lastName: z.string().min(1, "Last name must be at least 1 character"),
-  class: z.string()
-    .min(1, "Class must be at least 1 character")
-    .refine(value => validGreekClasses.includes(value), {
-      message: "Class must be a valid romanized Greek letter name",
-    }),
-  chapter: z.string().min(1, "Chapter must be at least 1 character"),
-  email: z.string().email("Email address is invalid"),
-  phone: z.string()
-    .min(1, "Phone must be at least 1 character")
-    .refine(value => {
-      return value ? /^\+([1-9][0-9]{1,14})$/.test(value) : true;
-    }, {
-      message: "Phone number must be a valid international phone number in E.164 format",
-    }),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters long")
-    .regex(/[a-z]/, "Password must contain at least 1 lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least 1 number")
-    .regex(/\W/, "Password must contain at least 1 special character"),
+export const experienceItemSchema = z.object({
+  company: z.string().min(2, "Company name must be at least 2 characters"),
+  jobTitle: z.string().min(2, "Job title must be at least 2 characters"),
+  location: z.string().min(2, "Location must be at least 2 characters"),
+  startDate: z.object({
+    month: z.string().min(1, "Month is required"),
+    year: z.string().regex(/^\d{4}$/, "Invalid year"),
+  }),
+  endDate: z.object({
+    month: z.string().min(1, "Month is required"),
+    year: z.string().regex(/^\d{4}$/, "Invalid year"),
+  }),
 });
 
 export const experienceSchema = z.object({
-  company: z.string().min(2, "Company name must be at least 2 characters"),
-  position: z.string().min(2, "Position must be at least 2 characters"),
-  years: z.string().regex(/^\d+$/, "Years must be a number"),
+  experienceList: z.array(experienceItemSchema).min(1, "At least one experience entry is required"),
 });
 
 export const formSchema = z.object({
