@@ -23,11 +23,6 @@ import {
   StepperTrigger,
 } from "@/components/ui/stepper";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-
-// Lucide Icons
-import { ArrowLeft, ArrowRight, Linkedin, Instagram, Facebook, Globe } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import InputPhone from "@/components/ui/input.phone";
 import InputPassword from "@/components/ui/input.password";
 import {
@@ -45,86 +40,29 @@ import {
   FormMessage,
   Form,
 } from "@/components/ui/form";
+import InputUniversity from "@/components/ui/input.university";
+import { InputProgram } from "@/components/ui/input.program";
 
-const validGreekClasses = [
-  'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 
-  'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 
-  'Phi', 'Chi', 'Psi', 'Omega'
-];
+// Lucide Icons
+import { ArrowLeft, ArrowRight, Linkedin, Instagram, Facebook, Globe, Trash2, Plus  } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-const personalSchema = z.object({
-  firstName: z.string().min(1, "First name must be at least 1 character"),
-  lastName: z.string().min(1, "Last name must be at least 1 character"),
-  class: z.string()
-    .min(1, "Class must be at least 1 character")
-    .refine(value => validGreekClasses.includes(value), {
-      message: "Class must be a valid romanized Greek letter name",
-    }),
-  chapter: z.string().min(1, "Chapter must be at least 1 character"),
-  email: z.string().email("Email address is invalid"),
-  phone: z.string()
-    .min(1, "Phone must be at least 1 character")
-    .refine(value => {
-      return value ? /^\+([1-9][0-9]{1,14})$/.test(value) : true;
-    }, {
-      message: "Phone number must be a valid international phone number in E.164 format",
-    }),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters long")
-    .regex(/[a-z]/, "Password must contain at least 1 lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least 1 uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least 1 number")
-    .regex(/\W/, "Password must contain at least 1 special character"),
-});
-
-const educationSchema = z.object({
-  school: z.string().min(2, "School name must be at least 2 characters"),
-  degree: z.string().min(2, "Degree must be at least 2 characters"),
-  graduationYear: z.string().regex(/^\d{4}$/, "Invalid graduation year"),
-});
-
-const experienceSchema = z.object({
-  company: z.string().min(2, "Company name must be at least 2 characters"),
-  position: z.string().min(2, "Position must be at least 2 characters"),
-  years: z.string().regex(/^\d+$/, "Years must be a number"),
-});
-
-const formSchema = z.object({
-  personal: personalSchema,
-  education: educationSchema,
-  experience: experienceSchema,
-});
+// Constants
+import {
+  validGreekClasses,
+  DEGREE_TYPES,
+  personalSchema,
+  educationSchema,
+  experienceSchema,
+  formSchema,
+  steps,
+  UNIVERSITY_DATA,
+} from "./constants";
 
 type FormData = z.infer<typeof formSchema>;
 type PersonalFormData = z.infer<typeof personalSchema>;
 type EducationFormData = z.infer<typeof educationSchema>;
 type ExperienceFormData = z.infer<typeof experienceSchema>;
-
-const steps = [
-  {
-    step: 1,
-    title: "Step 1",
-    description: "Personal",
-    schema: personalSchema,
-  },
-  {
-    step: 2,
-    title: "Step 2",
-    description: "Education",
-    schema: educationSchema,
-  },
-  {
-    step: 3,
-    title: "Step 3",
-    description: "Experience",
-    schema: experienceSchema,
-  },
-  {
-    step: 4,
-    title: "Step 4",
-    description: "Confirmation",
-  },
-];
 
 export default function Page() {
   const [step, setStep] = useState(1);
@@ -138,7 +76,23 @@ export default function Page() {
       phone: "", 
       password: "", 
     },
-    education: { school: "", degree: "", graduationYear: "" },
+    education: {
+      educationList: [{
+        university: {
+          id: "university-of-maryland",
+          name: "University of Maryland",
+          location: "College Park, MD",
+        },
+        degreeType: DEGREE_TYPES[0],
+        program: {
+          school: "",
+          major: "",
+          level: "undergraduate"
+        },
+        startDate: { month: "", year: "" },
+        endDate: { month: "", year: "" },
+      }]
+    },
     experience: { company: "", position: "", years: "" },
   });
 
@@ -173,8 +127,35 @@ export default function Page() {
     }
   };
 
-  const handleSetStep = (step: number) => {
-    setStep(step);
+  const handleSetStep = async (newStep: number) => {
+    // Only validate if moving forward
+    if (newStep > step) {
+      const currentForm = getCurrentForm();
+      if (currentForm) {
+        const result = await currentForm.trigger();
+        if (!result) return;
+
+        const currentValues = currentForm.getValues();
+        
+        if (step === 1) {
+          setFormData((prev: FormData) => ({
+            ...prev,
+            personal: currentValues as PersonalFormData
+          }));
+        } else if (step === 2) {
+          setFormData((prev: FormData) => ({
+            ...prev,
+            education: currentValues as EducationFormData
+          }));
+        } else if (step === 3) {
+          setFormData((prev: FormData) => ({
+            ...prev,
+            experience: currentValues as ExperienceFormData
+          }));
+        }
+      }
+    }
+    setStep(newStep);
   };
 
   const handleNextStep = async () => {
@@ -187,18 +168,18 @@ export default function Page() {
         const currentValues = currentForm.getValues();
         
         if (step === 1) {
-          setFormData(prev => ({
+          setFormData((prev: FormData) => ({
             ...prev,
             personal: currentValues as PersonalFormData
           }));
           console.log(currentValues);
         } else if (step === 2) {
-          setFormData(prev => ({
+          setFormData((prev: FormData) => ({
             ...prev,
             education: currentValues as EducationFormData
           }));
         } else if (step === 3) {
-          setFormData(prev => ({
+          setFormData((prev: FormData) => ({
             ...prev,
             experience: currentValues as ExperienceFormData
           }));
@@ -264,7 +245,7 @@ export default function Page() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              First Name <span className="text-destructive">*</span>
+                              First name <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="John" {...field} />
@@ -279,7 +260,7 @@ export default function Page() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Last Name <span className="text-destructive">*</span>
+                              Last name <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input placeholder="Doe" {...field} />
@@ -409,38 +390,243 @@ export default function Page() {
           )}
 
           {step === 2 && (
-            <div className="space-y-4">
-              <div>
-                <input
-                  {...educationForm.register("school")}
-                  placeholder="School"
-                  className="w-full p-2 border rounded"
-                />
-                {educationForm.formState.errors.school && (
-                  <p className="text-red-500">{educationForm.formState.errors.school.message}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  {...educationForm.register("degree")}
-                  placeholder="Degree"
-                  className="w-full p-2 border rounded"
-                />
-                {educationForm.formState.errors.degree && (
-                  <p className="text-red-500">{educationForm.formState.errors.degree.message}</p>
-                )}
-              </div>
-              <div>
-                <input
-                  {...educationForm.register("graduationYear")}
-                  placeholder="Graduation Year"
-                  className="w-full p-2 border rounded"
-                />
-                {educationForm.formState.errors.graduationYear && (
-                  <p className="text-red-500">{educationForm.formState.errors.graduationYear.message}</p>
-                )}
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Education</CardTitle>
+                <CardDescription>
+                  Please provide the following information to create an account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Form {...educationForm}>
+                  <div className="space-y-6">
+                    {educationForm.watch("educationList")?.map((_, index) => (
+                      <div key={index} className="space-y-6 p-4 border rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="font-medium mb-1">Education {index + 1}</h3>
+                            <p className="text-sm text-muted-foreground">Please provide details about your education</p>
+                          </div>
+                          {index > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const currentList = educationForm.getValues("educationList");
+                                currentList.splice(index, 1);
+                                educationForm.setValue("educationList", [...currentList]);
+                              }}
+                            >
+                              <Trash2 className="size-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+
+                        <FormField
+                            control={educationForm.control}
+                            name={`educationList.${index}.university`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>University</FormLabel>
+                                <FormControl>
+                                  <InputUniversity
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    disabled={true}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                        <FormField
+                          control={educationForm.control}
+                          name={`educationList.${index}.degreeType`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Degree</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select degree" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {DEGREE_TYPES.map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                      {type}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={educationForm.control}
+                          name={`educationList.${index}.program`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Program</FormLabel>
+                              <FormControl>
+                                <InputProgram name={`educationList.${index}.program`} universityData={UNIVERSITY_DATA} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-4">
+                            <FormLabel>Start Date</FormLabel>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={educationForm.control}
+                                name={`educationList.${index}.startDate.month`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Month" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                          <SelectItem key={month} value={month.toString()}>
+                                            {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={educationForm.control}
+                                name={`educationList.${index}.startDate.year`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Year" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 50 }, (_, i) => {
+                                          const currentYear = new Date().getFullYear();
+                                          return currentYear - i + 10; // This will give us years from current year + 10 down to current year - 39
+                                        }).map((year) => (
+                                          <SelectItem key={year} value={year.toString()}>
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            <FormLabel>End Date</FormLabel>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={educationForm.control}
+                                name={`educationList.${index}.endDate.month`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Month" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                                          <SelectItem key={month} value={month.toString()}>
+                                            {new Date(2000, month - 1).toLocaleString('default', { month: 'long' })}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={educationForm.control}
+                                name={`educationList.${index}.endDate.year`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger className="w-full">
+                                          <SelectValue placeholder="Year" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        {Array.from({ length: 50 }, (_, i) => {
+                                          const currentYear = new Date().getFullYear();
+                                          return currentYear - i + 10; // This will give us years from current year + 10 down to current year - 39
+                                        }).map((year) => (
+                                          <SelectItem key={year} value={year.toString()}>
+                                            {year}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const currentList = educationForm.getValues("educationList") || [];
+                        educationForm.setValue("educationList", [
+                          ...currentList,
+                          {
+                            university: { 
+                              id: "umd", 
+                              name: "University of Maryland", 
+                              location: "College Park, MD" 
+                            },
+                            degreeType: DEGREE_TYPES[0],
+                            program: {
+                              school: "",
+                              major: "",
+                              level: "undergraduate"
+                            },
+                            startDate: { month: "", year: "" },
+                            endDate: { month: "", year: "" },
+                          },
+                        ]);
+                      }}
+                    >
+                      <Plus className="size-4" />
+                      Add education
+                    </Button>
+                  </div>
+                </Form>
+              </CardContent>
+            </Card>
           )}
 
           {step === 3 && (
@@ -487,9 +673,9 @@ export default function Page() {
                 <p>Email: {formData.personal.email}</p>
                 
                 <h4 className="font-semibold mt-4">Education</h4>
-                <p>School: {formData.education.school}</p>
-                <p>Degree: {formData.education.degree}</p>
-                <p>Graduation Year: {formData.education.graduationYear}</p>
+                <p>School: {formData.education.educationList[0].university.name}</p>
+                <p>Degree: {formData.education.educationList[0].degreeType}</p>
+                <p>Graduation Year: {formData.education.educationList[0].endDate.year}</p>
                 
                 <h4 className="font-semibold mt-4">Experience</h4>
                 <p>Company: {formData.experience.company}</p>

@@ -56,7 +56,6 @@ export default function InputPassword({
         <div className="flex items-center space-x-2">
           <Input
             id={id}
-            className="pe-9"
             placeholder="Password"
             type={isVisible ? "text" : "password"}
             value={value}

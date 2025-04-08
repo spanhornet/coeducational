@@ -36,7 +36,7 @@ export default function InputPhone({
   return (
     <div className="*:not-first:mt-2" dir="ltr">
       <RPNInput.default
-        className="flex rounded-md"
+        className="flex rounded-md space-x-2"
         international
         flagComponent={FlagComponent}
         countrySelectComponent={CountrySelect}
@@ -56,7 +56,7 @@ const PhoneInput = ({ className, ...props }: React.ComponentProps<"input">) => {
     <Input
       data-slot="phone-input"
       className={cn(
-        "-ms-px rounded-s-none focus-visible:z-10",
+        "-ms-px focus-visible:z-10",
         className
       )}
       {...props}
@@ -84,7 +84,7 @@ const CountrySelect = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="border-input bg-background text-muted-foreground hover:cursor-pointer focus-within:border-ring focus-within:ring-ring/50 hover:bg-accent hover:text-foreground has-aria-invalid:border-destructive/60 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 relative inline-flex items-center self-stretch rounded-s-md border py-2 ps-3 pe-2 transition-[color] outline-none focus-within:z-10 focus-within:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50">
+        <div className="border-input bg-input dark:bg-input/30 text-muted-foreground hover:cursor-pointer focus-within:border-ring focus-within:ring-ring/50 hover:bg-accent hover:text-foreground has-aria-invalid:border-destructive/60 has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 relative inline-flex items-center self-stretch rounded-md border py-2 ps-3 pe-2 transition-[color] outline-none focus-within:z-10 focus-within:ring-[3px] has-disabled:pointer-events-none has-disabled:opacity-50">
           <div className="inline-flex items-center gap-1" aria-hidden="true">
             <FlagComponent country={value} countryName={value} aria-hidden="true" />
             <span className="text-muted-foreground/80">
@@ -104,7 +104,7 @@ const CountrySelect = ({
                 .map((option, i) => (
                   <CommandItem
                     key={option.value ?? `empty-${i}`}
-                    value={option.value ?? ""}
+                    value={`${option.value} ${option.label}`}
                     onSelect={() => {
                       if (option.value) {
                         onChange(option.value)
